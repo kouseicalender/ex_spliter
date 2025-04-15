@@ -4,13 +4,32 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>名言整理ウェブアプリ</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
   <h1>名言整理ウェブアプリ</h1>
-  <input type="file" id="excel-input" accept=".xlsx">
+
+  <input type="file" id="excel-input" accept=".xlsx" />
+
+  <label for="month-filter">月で絞り込み:</label>
+  <select id="month-filter">
+    <option value="all">すべての月</option>
+    <option value="1">1月のみ</option>
+    <option value="2">2月のみ</option>
+    <option value="3">3月のみ</option>
+    <option value="4">4月のみ</option>
+    <option value="5">5月のみ</option>
+    <option value="6">6月のみ</option>
+    <option value="7">7月のみ</option>
+    <option value="8">8月のみ</option>
+    <option value="9">9月のみ</option>
+    <option value="10">10月のみ</option>
+    <option value="11">11月のみ</option>
+    <option value="12">12月のみ</option>
+  </select>
+
   <div id="output"></div>
 </body>
 </html>
