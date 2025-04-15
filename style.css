@@ -1,34 +1,100 @@
-body {
-  font-family: sans-serif;
-  padding: 2em;
-  background: #f5f5f5;
+document.getElementById('excel-input').addEventListener('change', handleExcelUpload);
+
+let fullData = [];
+
+function handleExcelUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+    const header = rows[0];
+    const colIndex = {
+      month: header.indexOf("月"),
+      day: header.indexOf("日"),
+      jp: header.indexOf("（下）１行目"),
+      en: header.indexOf("（下）２行目"),
+      source: header.indexOf("（下）３行目")
+    };
+
+    fullData = rows.slice(1).map(row => {
+      const month = row[colIndex.month];
+      const day = row[colIndex.day];
+      const jp = row[colIndex.jp];
+      const en = row[colIndex.en];
+      const source = row[colIndex.source];
+      if (!month || !day || !jp || !en || !source) return null;
+      return {
+        month: Number(month),
+        date: `${month}月${day}日`,
+        jp: jp.toString().trim(),
+        en: en.toString().trim(),
+        source: source.toString().trim()
+      };
+    }).filter(x => x);
+
+    createMonthFilter();
+    displayTable(fullData);
+  };
+  reader.readAsArrayBuffer(file);
 }
 
-h1 {
-  font-size: 1.5em;
-  margin-bottom: 1em;
-  color: #2c3e50;
+function createMonthFilter() {
+  const output = document.getElementById('output');
+  const filter = document.createElement('select');
+  filter.id = 'month-filter';
+
+  const allOption = document.createElement('option');
+  allOption.value = 'all';
+  allOption.textContent = 'すべての月';
+  filter.appendChild(allOption);
+
+  for (let i = 1; i <= 12; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `${i}月のみ表示`;
+    filter.appendChild(opt);
+  }
+
+  filter.addEventListener('change', () => {
+    const selected = filter.value;
+    const filtered = selected === 'all' ? fullData : fullData.filter(row => row.month === Number(selected));
+    displayTable(filtered);
+  });
+
+  output.innerHTML = '';
+  output.appendChild(filter);
 }
 
-input[type="file"] {
-  margin-bottom: 1em;
-}
+function displayTable(data) {
+  const oldTable = document.querySelector('table');
+  if (oldTable) oldTable.remove();
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1em;
-  background: #fff;
-}
+  const output = document.getElementById('output');
+  const table = document.createElement('table');
+  const header = table.insertRow();
+  ['日付', '日本語', '英語', '出典'].forEach(text => {
+    const th = document.createElement('th');
+    th.textContent = text;
+    header.appendChild(th);
+  });
 
-th, td {
-  border: 1px solid #ccc;
-  padding: 0.6em;
-  text-align: left;
-  font-size: 0.95em;
-}
+  data.forEach(row => {
+    const tr = document.createElement('tr');
+    [row.date, row.jp, row.en, row.source].forEach(text => {
+      const td = document.createElement('td');
+      td.textContent = text;
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
 
-th {
-  background-color: #e0e0e0;
-  font-weight: bold;
+  output.appendChild(table);
 }
