@@ -12,8 +12,7 @@ function handleExcelUpload(event) {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: 'array' });
 
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
     const header = rows[0];
@@ -41,10 +40,25 @@ function handleExcelUpload(event) {
       };
     }).filter(x => x);
 
+    populateMonthFilter();
     displayTable(fullData);
   };
 
   reader.readAsArrayBuffer(file);
+}
+
+function populateMonthFilter() {
+  const select = document.getElementById('month-filter');
+  select.style.display = 'block';
+  select.innerHTML = '<option value="all">すべての月</option>';
+
+  const uniqueMonths = [...new Set(fullData.map(row => row.month))].sort((a, b) => a - b);
+  uniqueMonths.forEach(month => {
+    const opt = document.createElement('option');
+    opt.value = month;
+    opt.textContent = `${month}月のみ`;
+    select.appendChild(opt);
+  });
 }
 
 function handleFilterChange() {
